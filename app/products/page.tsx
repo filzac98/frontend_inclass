@@ -7,30 +7,15 @@ import { useState } from "react";
 import { Product } from "../../types/product";
 import { log } from "console";
 import Cart from "../../components/Cart";
+import { useCart } from "../hooks/useCart";
+import { useFilterProducts } from "../hooks/useFilterProducts";
 
 export default function Products() {
-
+    const { addToCart, cartItems, cartItemCount } = useCart();
+    const { search, setSearch, filteredProducts } = useFilterProducts();
     // Opret en custom hook (se slide)
     // flyt kode fra denne komponent til useCart (custom hook'en).
     // Importer de samme funktioner til denne komponent.
-
-    const [search, setSearch] = useState("");
-    const [cartItemCount, setCartItemCount] = useState(0); // 
-    const [cartItems, setCartItems] = useState([] as Product[])
-
-    const filteredProducts = products.filter((prod) => 
-        prod.name.toLowerCase().includes(search.toLowerCase()) ||
-        prod.category.toLowerCase().includes(search.toLowerCase()) ||
-        prod.price < Number(search)
-    )
-    //console.log(filteredProducts);
-    const addToCart = (product: Product) =>  {
-        setCartItemCount(cartItemCount => cartItemCount+1);
-        setCartItems([...cartItems, product])
-    }
-    const remoteFromCart = () => {
-
-    }
 
     return (
         <div>
