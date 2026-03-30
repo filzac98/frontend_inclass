@@ -48,9 +48,15 @@ export const handlers = [
     // DELETE /api/products/:id
     http.delete("/api/products/:id", async ({ params }) => {
         await delay(1000); // simulates 1s network latency
-        const index = productStore.findIndex((p) => p.id === Number(params.id));
-        if (index === -1) return new HttpResponse(null, { status: 404 });
-        productStore.splice(index, 1);
-        return new HttpResponse(null, { status: 204 });
+        // Demo failure path for UI error handling exercise.
+        // Try deleting product with id 2 to see the error state.
+        if (Math.random() < 0.5) {
+            const index = productStore.findIndex((p) => p.id === Number(params.id));
+            if (index === -1) return new HttpResponse(null, { status: 404 });
+            productStore.splice(index, 1);
+            return new HttpResponse(null, { status: 204 });
+        } else {
+            return new HttpResponse(null, { status: 500 });
+        }
     }),
 ];

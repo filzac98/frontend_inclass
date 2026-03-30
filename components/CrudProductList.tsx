@@ -9,7 +9,7 @@ type FormState = Omit<Product, "id">;
 const empty: FormState = { name: "", price: 0, description: "", category: "" };
 
 export default function CrudProductList() {
-    const { products, createProduct, updateProduct, deleteProduct } = useProducts();
+    const { products, loading, error, createProduct, updateProduct, deleteProduct } = useProducts();
     // const { products} = useProducts();
 
     const [form, setForm] = useState<FormState>(empty);
@@ -47,6 +47,14 @@ export default function CrudProductList() {
         setForm(empty);
     };
 
+    const handleDelete = async (id: number) => {
+        try {
+            await deleteProduct(id);
+        } catch {
+            // Hook state already captures and exposes the error for the UI.
+        }
+    };
+
     return (
         <div className="container">
             <h1>Products (MSW CRUD demo)</h1>
@@ -70,7 +78,12 @@ export default function CrudProductList() {
                 </div>
             </form>
 
+            {error && <p role="alert">Error: {error}</p>}
+
             {/* List */}
+            {loading ? (
+                <p>Loading...</p>
+            ) : (
                 <table className="crud-table">
                     <thead>
                         <tr>
@@ -87,11 +100,12 @@ export default function CrudProductList() {
                                 <td>{p.description}</td>
                                 <td className="crud-table__actions">
                                     <button onClick={() => startEdit(p)}>Edit</button>
-                                    <button onClick={() => deleteProduct(p.id)} className="danger">Delete</button>
+                                    <button onClick={() => handleDelete(p.id)} className="danger">Delete</button>
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
+            )}
         </div>
     )};

@@ -77,7 +77,7 @@ export function useProducts(search: string = "") {
             setLoading(false);
         }
 
-    }, [baseUrl]);
+    }, []);
 
     // UPDATE — same reasoning as createProduct above
     const updateProduct = useCallback(async (id: number, data: Partial<Omit<Product, "id">>) => {
@@ -105,7 +105,7 @@ export function useProducts(search: string = "") {
         } finally {
             setLoading(false);
         }
-    }, [baseUrl]);
+    }, []);
 
     // DELETE — same reasoning as createProduct above
     const deleteProduct = useCallback(async (id: number) => {
@@ -120,8 +120,20 @@ export function useProducts(search: string = "") {
                 method: "DELETE",
             });
 
+            // if (!response.ok) {
+            //     const maybeJson = await response.json().catch(() => null);
+            //     const message = maybeJson && typeof maybeJson === "object" && "message" in maybeJson
+            //         ? String((maybeJson as { message: unknown }).message)
+            //         : "Failed to delete product";
+            //     throw new Error(message);
+            // }
+
             if (!response.ok) {
                 throw new Error("Failed to delete product");
+            }
+
+            if (response.status === 204) {
+                setProducts((prev) => prev.filter((p) => p.id !== id));
             }
 
             setProducts((prev) => prev.filter((p) => p.id !== id));
@@ -131,8 +143,8 @@ export function useProducts(search: string = "") {
         } finally {
             setLoading(false);
         }  
-    }, [baseUrl]);
+    }, []);
 
-    return { products, createProduct, updateProduct, deleteProduct };
+    return { products, loading, error, createProduct, updateProduct, deleteProduct };
 }
 
