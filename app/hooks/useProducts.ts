@@ -1,11 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Productsdummy } from "../../types/product";
+import { Product } from "../../types/product";
 
-export function useProducts() {
-    const [products, setProducts] = useState<Productsdummy[]>([]);
-    // We want to store the products here in a state variable
+export function useProducts(search: string = "") {
+    const [products, setProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const baseUrl = ""; // 'https://localhost:8080'
     // READ — fetch all products
     //
@@ -16,15 +17,21 @@ export function useProducts() {
     // another fetch, another state update, another render — an infinite loop.
     // The empty array [] means the function is only created once (on mount).
     const fetchProducts = useCallback(async () => {
-        const response = await fetch(`${baseUrl}/api/products`, { 
-            method: "GET"
-        })
-        console.log(response);
-        // MSW intercepts this URL and returns the in-memory store.
-        // When the real backend is ready, replace "/api/products" with
-        // your actual API base URL, e.g. "https://api.example.com/products"
-        // or an environment variable like `${process.env.NEXT_PUBLIC_API_URL}/products`
-    }, []);
+        setLoading(true);
+        setError(null);
+        try {  
+             const url = search
+                ? `/api/products?search=${encodeURIComponent(search)}`
+                : "/api/products";
+            const res = await fetch(url);
+                if (!res.ok) throw new Error("Failed to fetch products");
+                setProducts(await res.json());
+            } catch (e) {
+                setError((e as Error).message);
+            } finally {
+                setLoading(false);
+            }
+    }, [search]);
 
     // useEffect runs *after* the component mounts (appears on screen).
     // The function inside it calls fetchProducts to load the data from the API.
@@ -47,7 +54,14 @@ export function useProducts() {
         // MSW handles POST and returns the new product with an auto-generated id.
         // With a real backend this fetch call stays exactly the same —
         // just make sure the server also responds with the created product (201).
-        
+        const response = await fetch(`${baseUrl}/api/products`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+        });
+        const newProduct = await response.json();
+        setProducts((prev) => [...prev, newProduct]);
+
     }, []);
 
     // UPDATE — same reasoning as createProduct above
@@ -65,6 +79,6 @@ export function useProducts() {
         // since we don't read the response body.
     }, []);
 
-    return { }
+    return { products, createProduct, updateProduct, deleteProduct };
 }
 
