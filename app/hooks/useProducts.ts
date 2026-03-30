@@ -20,15 +20,15 @@ export function useProducts(search: string = "") {
         setLoading(true);
         setError(null);
         try {  
-             const url = search
+            const url = search
                 ? `/api/products?search=${encodeURIComponent(search)}`
                 : "/api/products";
             const res = await fetch(url);
                 if (!res.ok) throw new Error("Failed to fetch products");
-                setProducts(await res.json());
-            } catch (e) {
-                setError((e as Error).message);
-            } finally {
+                setProducts(await res.json()); } 
+        catch (e) {
+                setError((e as Error).message);} 
+        finally {
                 setLoading(false);
             }
     }, [search]);
@@ -54,22 +54,58 @@ export function useProducts(search: string = "") {
         // MSW handles POST and returns the new product with an auto-generated id.
         // With a real backend this fetch call stays exactly the same —
         // just make sure the server also responds with the created product (201).
-        const response = await fetch(`${baseUrl}/api/products`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-        });
-        const newProduct = await response.json();
-        setProducts((prev) => [...prev, newProduct]);
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await fetch(`${baseUrl}/api/products`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            });
 
-    }, []);
+            if (!response.ok) {
+                throw new Error("Failed to create product");
+            }
+
+            const newProduct = (await response.json()) as Product;
+            setProducts((prev) => [...prev, newProduct]);
+            return newProduct;
+        } catch (e) {
+            setError((e as Error).message);
+            throw e;
+        } finally {
+            setLoading(false);
+        }
+
+    }, [baseUrl]);
 
     // UPDATE — same reasoning as createProduct above
     const updateProduct = useCallback(async (id: number, data: Partial<Omit<Product, "id">>) => {
         // MSW handles PUT and merges the fields in the in-memory store.
         // Some REST APIs use PATCH instead of PUT for partial updates —
         // change method: "PUT" to method: "PATCH" if your backend requires it.
-    }, []);
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await fetch(`${baseUrl}/api/products/${id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to update product");
+            }
+            const updatedProduct = (await response.json()) as Product;
+            setProducts((prev) => prev.map((p) => (p.id === id ? updatedProduct : p)));
+            return updatedProduct;
+        } catch (e) {
+            setError((e as Error).message);
+            throw e;
+        } finally {
+            setLoading(false);
+        }
+    }, [baseUrl]);
 
     // DELETE — same reasoning as createProduct above
     const deleteProduct = useCallback(async (id: number) => {
@@ -77,7 +113,25 @@ export function useProducts(search: string = "") {
         // The real backend should also return 204 for this to work as-is.
         // If it returns 200 with a body instead, no changes are needed here
         // since we don't read the response body.
-    }, []);
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await fetch(`${baseUrl}/api/products/${id}`, {
+                method: "DELETE",
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to delete product");
+            }
+
+            setProducts((prev) => prev.filter((p) => p.id !== id));
+        } catch (e) {
+            setError((e as Error).message);
+            throw e;
+        } finally {
+            setLoading(false);
+        }  
+    }, [baseUrl]);
 
     return { products, createProduct, updateProduct, deleteProduct };
 }
