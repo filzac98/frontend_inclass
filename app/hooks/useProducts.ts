@@ -1,11 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Product } from "../../types/product";
+import { Productsdummy } from "../../types/product";
 
 export function useProducts() {
+    const [products, setProducts] = useState<Productsdummy[]>([]);
     // We want to store the products here in a state variable
-    
+    const baseUrl = ""; // 'https://localhost:8080'
     // READ — fetch all products
     //
     // useCallback prevents a new function from being created on every render.
@@ -15,6 +16,10 @@ export function useProducts() {
     // another fetch, another state update, another render — an infinite loop.
     // The empty array [] means the function is only created once (on mount).
     const fetchProducts = useCallback(async () => {
+        const response = await fetch(`${baseUrl}/api/products`, { 
+            method: "GET"
+        })
+        console.log(response);
         // MSW intercepts this URL and returns the in-memory store.
         // When the real backend is ready, replace "/api/products" with
         // your actual API base URL, e.g. "https://api.example.com/products"

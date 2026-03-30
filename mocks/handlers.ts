@@ -2,7 +2,7 @@ import { http, HttpResponse, delay } from "msw";
 import { Product } from "../types/product";
  
 // In-memory "database" seeded with the dummy data
-let productStore: Product[] = [
+const productStore: Product[] = [
     { id: 1, name: "Cat",      price: 10,  description: "Description 1", category: "Pet"    },
     { id: 2, name: "Dog",      price: 5,   description: "Description 2", category: "Pet"    },
     { id: 3, name: "Giraffe",  price: 120, description: "Description 3", category: "Animal" },
